@@ -34,7 +34,7 @@
 #define HUAWEI_MINIMAL_OFFLINE_VOLTAGE 48
 #define HUAWEI_MINIMAL_ONLINE_VOLTAGE 42
 
-#define MAX_CURRENT_MULTIPLIER 20
+#define MAX_CURRENT_MULTIPLIER 30
 
 // Index values for rec_values array
 #define HUAWEI_INPUT_POWER_IDX 0
@@ -61,6 +61,11 @@
 #define HUAWEI_MODE_ON 1
 #define HUAWEI_MODE_AUTO_EXT 2
 #define HUAWEI_MODE_AUTO_INT 3
+
+// Pin values for Optocoupler
+#define HUAWEI_POWER_ON 1
+#define HUAWEI_POWER_OFF 0
+
 
 // Error codes
 #define HUAWEI_ERROR_CODE_RX 0x01
