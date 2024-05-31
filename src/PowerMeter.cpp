@@ -51,8 +51,8 @@ void PowerMeterClass::init(Scheduler& scheduler)
         };
 
         subscribe(config.PowerMeter.MqttTopicPowerMeter1, &_powerMeter1Power);
-        subscribe(config.PowerMeter.MqttTopicPowerMeter2, &_powerMeter2Power);
-        subscribe(config.PowerMeter.MqttTopicPowerMeter3, &_powerMeter3Power);
+        // subscribe(config.PowerMeter.MqttTopicPowerMeter2, &_powerMeter2Power);
+        // subscribe(config.PowerMeter.MqttTopicPowerMeter3, &_powerMeter3Power);
         break;
     }
 
@@ -112,22 +112,24 @@ void PowerMeterClass::onMqttMessage(const espMqttClientTypes::MessageProperties&
                     topic, getPowerTotal());
         }
 
+        mqtt();
+
         _lastPowerMeterUpdate = millis();
     }
 }
 
 float PowerMeterClass::getPowerTotal(bool forceUpdate)
 {
-    if (forceUpdate) {
+    /* if (forceUpdate) {
         CONFIG_T& config = Configuration.get();
         if (config.PowerMeter.Enabled
                 && (millis() - _lastPowerMeterUpdate) > (1000)) {
             readPowerMeter();
         }
-    }
+    }*/
 
     std::lock_guard<std::mutex> l(_mutex);
-    return _powerMeter1Power + _powerMeter2Power + _powerMeter3Power;
+    return _powerMeter1Power; // + _powerMeter2Power + _powerMeter3Power;
 }
 
 uint32_t PowerMeterClass::getLastPowerMeterUpdate()
@@ -161,15 +163,15 @@ void PowerMeterClass::mqtt()
     auto totalPower = getPowerTotal();
 
     std::lock_guard<std::mutex> l(_mutex);
-    MqttSettings.publish(topic + "/power1", String(_powerMeter1Power));
-    MqttSettings.publish(topic + "/power2", String(_powerMeter2Power));
-    MqttSettings.publish(topic + "/power3", String(_powerMeter3Power));
+    // MqttSettings.publish(topic + "/power1", String(_powerMeter1Power));
+    // MqttSettings.publish(topic + "/power2", String(_powerMeter2Power));
+    // MqttSettings.publish(topic + "/power3", String(_powerMeter3Power));
     MqttSettings.publish(topic + "/powertotal", String(totalPower));
-    MqttSettings.publish(topic + "/voltage1", String(_powerMeter1Voltage));
-    MqttSettings.publish(topic + "/voltage2", String(_powerMeter2Voltage));
-    MqttSettings.publish(topic + "/voltage3", String(_powerMeter3Voltage));
-    MqttSettings.publish(topic + "/import", String(_powerMeterImport));
-    MqttSettings.publish(topic + "/export", String(_powerMeterExport));
+    // MqttSettings.publish(topic + "/voltage1", String(_powerMeter1Voltage));
+    // MqttSettings.publish(topic + "/voltage2", String(_powerMeter2Voltage));
+    // MqttSettings.publish(topic + "/voltage3", String(_powerMeter3Voltage));
+    // MqttSettings.publish(topic + "/import", String(_powerMeterImport));
+    // MqttSettings.publish(topic + "/export", String(_powerMeterExport));
 }
 
 void PowerMeterClass::loop()
@@ -193,7 +195,7 @@ void PowerMeterClass::loop()
 
     MessageOutput.printf("PowerMeterClass: TotalPower: %5.2f\r\n", getPowerTotal());
 
-    mqtt();
+    // mqtt();
 
     _lastPowerMeterCheck = millis();
 }
