@@ -224,7 +224,7 @@ void HuaweiCanClass::updateSettings(uint8_t huawei_miso, uint8_t huawei_mosi, ui
     };
 
     pinMode(huawei_power, OUTPUT);
-    digitalWrite(huawei_power, HIGH);
+    digitalWrite(huawei_power, HUAWEI_POWER_OFF);
     _huaweiPower = huawei_power;
 
     if (config.Huawei.Auto_Power_Enabled) {
@@ -296,7 +296,7 @@ void HuaweiCanClass::loop()
   }
   if (_outputCurrentOnSinceMillis + HUAWEI_AUTO_MODE_SHUTDOWN_DELAY < millis() &&
       (_mode == HUAWEI_MODE_AUTO_EXT || _mode == HUAWEI_MODE_AUTO_INT)) {
-    digitalWrite(_huaweiPower, 1);
+    digitalWrite(_huaweiPower, HUAWEI_POWER_OFF);
   }
 
 
@@ -389,10 +389,8 @@ void HuaweiCanClass::loop()
         MessageOutput.printf("[HuaweiCanClass::loop] newPowerLimit: %f, output_power: %f \r\n", newPowerLimit, _rp.output_power);
       }
 
-      // Check whether the battery SoC limit setting is enabled
       if (config.Battery.Enabled && config.Huawei.Auto_Power_BatterySoC_Limits_Enabled) {
         uint8_t _batterySoC = Battery.getStats()->getSoC();
-        // Sets power limit to 0 if the BMS reported SoC reaches or exceeds the user configured value
         if (_batterySoC >= config.Huawei.Auto_Power_Stop_BatterySoC_Threshold) {
           newPowerLimit = 0;
           if (verboseLogging) {
@@ -429,7 +427,7 @@ void HuaweiCanClass::loop()
         float calculatedCurrent = efficiency * (newPowerLimit / _rp.output_voltage);
 
         // Limit output current to value requested by BMS
-        float permissableCurrent = stats->getChargeCurrentLimitation() - (stats->getChargeCurrent() - _rp.output_current); // BMS current limit - current from other sources, e.g. Victron MPPT charger
+        float permissableCurrent = stats->getChargeCurrentLimitation() - (stats->getChargeCurrent() - _rp.output_current); // BMS current limit - current from other sources
         float outputCurrent = std::min(calculatedCurrent, permissableCurrent);
         outputCurrent= outputCurrent > 0 ? outputCurrent : 0;
 
@@ -476,7 +474,7 @@ void HuaweiCanClass::_setValue(float in, uint8_t parameterType)
     // Start PSU if needed
     if (in > HUAWEI_AUTO_MODE_SHUTDOWN_CURRENT && parameterType == HUAWEI_ONLINE_CURRENT &&
         (_mode == HUAWEI_MODE_AUTO_EXT || _mode == HUAWEI_MODE_AUTO_INT)) {
-      digitalWrite(_huaweiPower, 0);
+      digitalWrite(_huaweiPower, HUAWEI_POWER_ON);
       _outputCurrentOnSinceMillis = millis();
     }
 
@@ -499,11 +497,11 @@ void HuaweiCanClass::setMode(uint8_t mode) {
   }
 
   if(mode == HUAWEI_MODE_OFF) {
-    digitalWrite(_huaweiPower, 1);
+    digitalWrite(_huaweiPower, HUAWEI_POWER_OFF);
     _mode = HUAWEI_MODE_OFF;
   }
   if(mode == HUAWEI_MODE_ON) {
-    digitalWrite(_huaweiPower, 0);
+    digitalWrite(_huaweiPower, HUAWEI_POWER_ON);
     _mode = HUAWEI_MODE_ON;
   }
 
@@ -521,6 +519,3 @@ void HuaweiCanClass::setMode(uint8_t mode) {
     _mode = mode;
   }
 }
-
-
-
